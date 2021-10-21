@@ -238,3 +238,13 @@ if __name__ == '__main__':
         for video in videos:
             args.video_path = join(video_path, video)
             test_full_image_network(**vars(args))
+
+def detection(video_path, model_path, output_path, start_frame=0, end_frame=None, cuda=False):
+    print(video_path)
+    if video_path.endswith('.mp4') or video_path.endswith('.avi'):
+        test_full_image_network(video_path, model_path, output_path, start_frame, end_frame, cuda)
+    else:
+        videos = os.listdir(video_path)
+        for video in videos:
+            video_path = join(video_path, video)
+            test_full_image_network(video_path, model_path, output_path, start_frame, end_frame, cuda)
