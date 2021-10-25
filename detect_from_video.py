@@ -214,6 +214,7 @@ def test_full_image_network(video_path, model_path, output_path,
     if writer is not None:
         writer.release()
         print('Finished! Output saved under {}'.format(output_path))
+        return output_path
     else:
         print('Input video file was empty')
 
@@ -239,12 +240,12 @@ if __name__ == '__main__':
             args.video_path = join(video_path, video)
             test_full_image_network(**vars(args))
 
-def detection(video_path, model_path, output_path, start_frame=0, end_frame=None, cuda=False):
+def detection(video_path, model_path, output_path, start_frame=0, end_frame=100, cuda=False):
     print(video_path)
     if video_path.endswith('.mp4') or video_path.endswith('.avi'):
-        test_full_image_network(video_path, model_path, output_path, start_frame, end_frame, cuda)
+        return test_full_image_network(video_path, model_path, output_path, start_frame, end_frame, cuda)
     else:
         videos = os.listdir(video_path)
         for video in videos:
             video_path = join(video_path, video)
-            test_full_image_network(video_path, model_path, output_path, start_frame, end_frame, cuda)
+            return test_full_image_network(video_path, model_path, output_path, start_frame, end_frame, cuda)
