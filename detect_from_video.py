@@ -16,6 +16,8 @@ from os.path import join
 import cv2
 import dlib
 import torch
+import imageio
+import json
 import torch.nn as nn
 from PIL import Image as pil_image
 from tqdm import tqdm
@@ -121,9 +123,10 @@ def test_full_image_network(video_path, model_path, output_path,
     # Read and write
     reader = cv2.VideoCapture(video_path)
 
-    video_fn = video_path.split('/')[-1].split('.')[0]+'.avi'
+    video_fn = video_path.split('/')[-1].split('.')[0]+'.mp4'
+    video_name = video_path.split('/')[-1].split('.')[0]
     os.makedirs(output_path, exist_ok=True)
-    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
     fps = reader.get(cv2.CAP_PROP_FPS)
     num_frames = int(reader.get(cv2.CAP_PROP_FRAME_COUNT))
     writer = None
@@ -152,6 +155,7 @@ def test_full_image_network(video_path, model_path, output_path,
     assert start_frame < num_frames - 1
     end_frame = end_frame if end_frame else num_frames
     pbar = tqdm(total=end_frame-start_frame)
+    image_list = []
 
     while reader.isOpened():
         _, image = reader.read()
@@ -210,11 +214,17 @@ def test_full_image_network(video_path, model_path, output_path,
         cv2.imshow('test', image)
         cv2.waitKey(33)     # About 30 fps
         writer.write(image)
+
+        #convert to gif
+        frame_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image_list.append(frame_rgb)
+
     pbar.close()
+    imageio.mimsave(output_path+'/'+video_name+'.gif', image_list, fps=60)
     if writer is not None:
         writer.release()
         print('Finished! Output saved under {}'.format(output_path))
-        return output_path
+        return {'output_path': output_path, 'prediction': prediction, 'video_fn': video_fn, 'video_name': video_name, 'output_list': json.dumps(output_list)}
     else:
         print('Input video file was empty')
 
@@ -240,7 +250,7 @@ if __name__ == '__main__':
             args.video_path = join(video_path, video)
             test_full_image_network(**vars(args))
 
-def detection(video_path, model_path, output_path, start_frame=0, end_frame=100, cuda=False):
+def detection(video_path, model_path, output_path, start_frame=100, end_frame=110, cuda=False):
     print(video_path)
     if video_path.endswith('.mp4') or video_path.endswith('.avi'):
         return test_full_image_network(video_path, model_path, output_path, start_frame, end_frame, cuda)
